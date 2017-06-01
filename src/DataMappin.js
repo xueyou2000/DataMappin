@@ -17,11 +17,10 @@
 
     // 顺序绑定
     bindForOrder: function(wrap, elements, data) {
-      var map = {};
+      // 集合
       var enter = $();
       var update = $();
       var exit = $();
-
 
       // 节点集合长度
       var nodeSize = elements.length;
@@ -30,64 +29,32 @@
 
       if (dataSize > 0) {
         update = elements.slice(0, dataSize);
-        update.each(function(i) {
-          map[i] = {
-            node: $(this),
-            data: data[i]
-          };
-          $(this).data('index', i);
-        });
+        DataMappin.nodesBindData(update, 0, data);
       }
 
       if (nodeSize > dataSize) {
         exit = elements.slice(dataSize);
-        exit.each(function(i) {
-          var indexKey = i + dataSize;
-          map[indexKey] = {
-            node: $(this),
-            data: null
-          };
-          $(this).data('index', indexKey);
-        });
       } else {
         enter = DataMappin.converToNodes(data.slice(nodeSize));
-        enter.each(function(i) {
-          var indexKey = i + nodeSize;
-          map[indexKey] = {
-            node: $(this),
-            data: data[indexKey]
-          };
-          $(this).data('index', indexKey);
-        });
+        DataMappin.nodesBindData(enter, nodeSize, data);
       }
 
-      // console.log(map);
-      // console.log('enter', enter);
-      // console.log('update', update);
-      // console.log('exit', exit);
-      // console.log(update.length + enter.length, '=============================', dataSize);
 
       var selection = {
         enter: function(fn) {
           wrap.append(enter);
-          enter.each(function() {
-            var i = $(this).data('index');
-            var node = fn.call(this, map[i].data, i).data('index', i);
-            $(this).replaceWith(node);
+          var nodes = DataMappin.each(enter, fn);
+          enter.each(function(i) {
+            $(this).replaceWith(nodes.eq(i));
           });
           return selection;
         },
         update: function(fn) {
-          update.each(function() {
-            var i = $(this).data('index');
-            fn.call(this, map[i].data, i);
-          });
+          DataMappin.each(update, fn);
           return selection;
         },
         exit: function(fn) {
-          exit.each(function() {
-            fn.call(this);
-          });
+          DataMappin.each(exit, fn);
           return selection;
         },
       };
@@ -95,15 +62,18 @@
       return selection;
 
 
-
-
-
-
-
-
     },
 
 
+    // 绑定数据
+    nodesBindData: function(nodes, start, dataset) {
+      start = start || 0;
+      nodes.each(function(i) {
+        var indexKey = i + start;
+        var data = $(this).data('data');
+        $(this).data('data',  { index: indexKey, data: dataset[indexKey] } );
+      });
+    },
     // 数据集合转占位符节点
     converToNodes: function(data) {
       var enterEle = $();
@@ -113,8 +83,20 @@
         enterEle = enterEle.add(node);
       });
       return enterEle;
+    },
+    // 遍历节点集合
+    each: function(nodes, fn) {
+      var enter = $();
+      nodes.each(function() {
+        var data = $(this).data('data');
+        var node = fn.call(this, data.data, data.index);
+        if (node) {
+          node.data('data', data);
+          enter = enter.add(node);
+        }
+      });
+      return enter;
     }
-
 
 
 
