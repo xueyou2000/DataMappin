@@ -18,6 +18,10 @@
       background-color: #009a61;
       background-image:linear-gradient(-45deg,rgba(255,255,255,.2) 25%, transparent 25%,transparent 50%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.2) 75%,transparent 75%,transparent);
       overflow: hidden;
+
+      position: absolute;
+      left: 10px;
+      top: 10px;
     }
   </style>
 </head>
@@ -39,24 +43,27 @@
 
   var update = function(data) {
 
-    var db = DataMappin.bindForOrder(
+    var db = DataMappin.bind(
       $('#wrap'),
       $('#wrap .node'),
-      data
+      data,
+      (d, i) => { return d; }
     );
     db
     .enter(function(d, i) {
       var node = $(this);
       var node = $('<div class="cylindrical node">' + d + '的数据</div>');
-
       // transition
       setTimeout(function() {
         node.css({
           width: d * 100,
-          height: '35px'
+          height: '35px',
+          opacity: 1
         });
       }, 10);
-
+      node.css({
+        top: i * 45,
+      });
       node.text(d + '的数据');
       node.attr('status', 'enter');
       return node;
@@ -64,16 +71,20 @@
     .update(function(d, i) {
       var node = $(this);
       node.css('width', d * 100);
+      node.css({
+        top: i * 45
+      });
       node.text(d + '的数据');
       node.attr('status', 'update');
     })
     .exit(function() {
       var node = $(this);
-      node.css('background-color', 'red');
+      //node.css('background-color', 'red');
       node.attr('status', 'exit');
       node.css({
         width: 0,
-        height: 0
+        height: 0,
+        opacity: 0
       });
 
       node.bind('transitionend', function() {
