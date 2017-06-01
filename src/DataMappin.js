@@ -55,15 +55,15 @@
           enter.each(function(i) {
             $(this).replaceWith(nodes.eq(i));
           });
-          return selection;
+          return nodes;
         },
         update: function(fn) {
           DataMappin.each(update, fn);
-          return selection;
+          return update;
         },
         exit: function(fn) {
           DataMappin.each(exit, fn);
-          return selection;
+          return exit;
         },
       };
 
@@ -95,6 +95,13 @@
         DataMappin.nodesBindData(enter, nodeSize, data);
       }
 
+
+      // console.log('enter', enter);
+      // console.log('update', update);
+      // console.log('exit', exit);
+      // console.log('=====================================');
+
+
       var selection = {
         enter: function(fn) {
           wrap.append(enter);
@@ -102,19 +109,17 @@
           enter.each(function(i) {
             $(this).replaceWith(nodes.eq(i));
           });
-          return selection;
+          return nodes;
         },
         update: function(fn) {
-          DataMappin.each(update, fn);
-          return selection;
+          return DataMappin.each(update, fn);
         },
         exit: function(fn) {
-          DataMappin.each(exit, fn);
-          return selection;
+          return DataMappin.each(exit, fn);
         },
       };
 
-      return selection;
+      return $.extend({}, selection);
     },
     // 绑定数据
     nodesBindData: function(nodes, start, dataset) {
@@ -146,7 +151,7 @@
           enter = enter.add(node);
         }
       });
-      return enter;
+      return enter.length === 0 ? nodes : enter;
     }
 
   };

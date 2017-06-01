@@ -6,6 +6,13 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>数据驱动视图</title>
   <style>
+    #wrap,
+    #wrap2 {
+      position: relative;
+      height: 200px;
+      width: 500px;
+      float: left;
+    }
     .cylindrical {
       display: block;
       width: 0;
@@ -13,25 +20,32 @@
       line-height: 35px;
       text-indent: 10px;
       font-size: 13px;
-      margin: 30px;
+      /*margin: 30px;*/
       transition: 0.3s;
       background-color: #009a61;
       background-image:linear-gradient(-45deg,rgba(255,255,255,.2) 25%, transparent 25%,transparent 50%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.2) 75%,transparent 75%,transparent);
       overflow: hidden;
 
       position: absolute;
-      left: 10px;
+      left: 0;
       top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div id="wrap">
+  <button id="modify">切换数据</button>
 
-  </div>
   
-  <button id="modify">修改数据</button>
+  <div class="fix">
+    <div id="wrap">
+      <h1>顺序绑定</h1>
+    </div>
+
+    <div id="wrap2">
+      <h1>值绑定</h1>
+    </div>
+  </div>
 
 
 
@@ -41,16 +55,17 @@
 
 
 
-  var update = function(data) {
+  var update = function(data, wrap, elements, useFn) {
 
-    var db = DataMappin.bind(
-      $('#wrap'),
-      $('#wrap .node'),
+    var clump = DataMappin.bind(
+      wrap,
+      elements,
       data,
-      (d, i) => { return d; }
+      useFn ? (d, i) => { return d; } : undefined
     );
-    db
-    .enter(function(d, i) {
+
+
+    var enter = clump.enter(function(d, i) {
       var node = $(this);
       var node = $('<div class="cylindrical node">' + d + '的数据</div>');
       // transition
@@ -62,36 +77,38 @@
         });
       }, 10);
       node.css({
-        top: i * 45,
+        top: i * 45 + 70,
       });
       node.text(d + '的数据');
       node.attr('status', 'enter');
       return node;
-    })
-    .update(function(d, i) {
+    });
+
+
+    var update = clump.update(function(d, i) {
       var node = $(this);
       node.css('width', d * 100);
       node.css({
-        top: i * 45
+        top: i * 45 + 70
       });
       node.text(d + '的数据');
       node.attr('status', 'update');
-    })
-    .exit(function() {
+    });
+
+    wrap.css('height', enter.add(update).length * 75);
+
+
+    clump.exit(function() {
       var node = $(this);
-      //node.css('background-color', 'red');
       node.attr('status', 'exit');
       node.css({
         width: 0,
         height: 0,
         opacity: 0
       });
-
       node.bind('transitionend', function() {
         node.remove();
       });
-
-
     });
 
   };
@@ -103,11 +120,13 @@
     [3, 4, 2, 1, 2]
   ];
 
-  update(data[0]);
+  update(data[0], $('#wrap'), $('#wrap .node'), false);
+  update(data[0], $('#wrap2'), $('#wrap2 .node'), true);
 
   $('#modify').click(function() {
     var i = current ^ true;
-    update(data[i]);
+    update(data[i], $('#wrap'), $('#wrap .node'), false);
+    update(data[i], $('#wrap2'), $('#wrap2 .node'), true);
     current = !current;
   });
 
