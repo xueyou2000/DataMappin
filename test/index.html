@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>数据驱动视图</title>
+  <style>
+    .cylindrical {
+      display: block;
+      width: 0;
+      height: 0;
+      line-height: 35px;
+      text-indent: 10px;
+      font-size: 13px;
+      margin: 30px;
+      transition: 0.3s;
+      background-color: #009a61;
+      background-image:linear-gradient(-45deg,rgba(255,255,255,.2) 25%, transparent 25%,transparent 50%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.2) 75%,transparent 75%,transparent);
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="wrap">
+
+  </div>
+  
+  <button id="modify">修改数据</button>
+
+
+
+  <script src="jquery-1.8.3.min.js"></script>
+  <script src="../src/DataMappin.js"></script>
+  <script>
+
+
+
+  var update = function(data) {
+
+    var db = DataMappin.bindForOrder(
+      $('#wrap'),
+      $('#wrap .node'),
+      data
+    );
+    db
+    .enter(function(d, i) {
+      var node = $(this);
+      var node = $('<div class="cylindrical node">' + d + '的数据</div>');
+
+      // transition
+      setTimeout(function() {
+        node.css({
+          width: d * 100,
+          height: '35px'
+        });
+      }, 10);
+
+      node.text(d + '的数据');
+      node.attr('status', 'enter');
+      return node;
+    })
+    .update(function(d, i) {
+      var node = $(this);
+      node.css('width', d * 100);
+      node.text(d + '的数据');
+      node.attr('status', 'update');
+    })
+    .exit(function() {
+      var node = $(this);
+      node.css('background-color', 'red');
+      node.attr('status', 'exit');
+      node.css({
+        width: 2,
+        height: 2
+      });
+
+      node.bind('transitionend', function() {
+        node.remove();
+      });
+
+
+    });
+
+  };
+
+
+  var current = false;
+  var data = [
+    [1,2,3],
+    [3, 4, 2, 1, 2]
+  ];
+
+  update(data[0]);
+
+  $('#modify').click(function() {
+    var i = current ^ true;
+    update(data[i]);
+    current = !current;
+  });
+
+
+
+
+
+
+
+
+
+
+  </script>
+</body>
+</html>
